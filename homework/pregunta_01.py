@@ -4,7 +4,9 @@
 """
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
-
+import pandas as pd
+import os
+import zipfile
 
 def pregunta_01():
     """
@@ -71,3 +73,48 @@ def pregunta_01():
 
 
     """
+     # Ruta del archivo y descomprimir
+    archivo_zip = 'files/input.zip'
+    carpeta_extraccion = '.' 
+
+    # Crear carpeta de extracción si no existe
+    if not os.path.exists(carpeta_extraccion):
+        os.makedirs(carpeta_extraccion)
+
+    # Descomprimir el archivo zip
+    with zipfile.ZipFile(archivo_zip, 'r') as archivo:
+        archivo.extractall(carpeta_extraccion)
+
+    carpeta_datos = 'input' 
+
+    # Función para leer archivos y etiquetar
+    def cargar_datos(directorio):
+        registros = []
+        # Recorrer las carpetas de sentimientos
+        for etiqueta in ['negative', 'positive', 'neutral']:
+            carpeta_etiqueta = os.path.join(directorio, etiqueta)
+            for archivo_nombre in os.listdir(carpeta_etiqueta):
+                ruta_archivo = os.path.join(carpeta_etiqueta, archivo_nombre)
+                with open(ruta_archivo, 'r', encoding='utf-8') as archivo:
+                    contenido = archivo.read().strip()
+                    registros.append({'phrase': contenido, 'target': etiqueta})
+        return registros
+
+    # Cargar los datos de entrenamiento y prueba
+    datos_entrenamiento = cargar_datos(os.path.join(carpeta_datos, 'train'))
+    datos_prueba = cargar_datos(os.path.join(carpeta_datos, 'test'))
+
+    # Convertir los datos en DataFrames
+    df_entrenamiento = pd.DataFrame(datos_entrenamiento)
+    df_prueba = pd.DataFrame(datos_prueba)
+
+    # Crear carpeta de salida si no existe
+    carpeta_salida = 'files/output/'
+    if not os.path.exists(carpeta_salida):
+        os.makedirs(carpeta_salida)
+
+    # Guardar los DataFrames en archivos CSV
+    df_entrenamiento.to_csv(os.path.join(carpeta_salida, 'train_dataset.csv'), index=False)
+    df_prueba.to_csv(os.path.join(carpeta_salida, 'test_dataset.csv'), index=False)
+
+
